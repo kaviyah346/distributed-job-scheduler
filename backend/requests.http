@@ -1,0 +1,55 @@
+### ===================================================================
+### Distributed Job Scheduler - IntelliJ HTTP Client Requests
+### You can click the green "Run / Play" icon next to any request below!
+### ===================================================================
+
+### 1. Create a Project
+POST http://localhost:8080/api/v1/projects
+Content-Type: application/json
+
+{
+  "name": "ECommerce-Platform",
+  "description": "Primary background job processing project"
+}
+
+### 2. List All Projects
+GET http://localhost:8080/api/v1/projects
+
+### 3. Create a Queue for the Project
+# Replace projectId with the ID returned from Step 1
+POST http://localhost:8080/api/v1/queues
+Content-Type: application/json
+
+{
+  "projectId": "PASTE_PROJECT_ID_HERE",
+  "name": "email-queue",
+  "priority": 10,
+  "concurrencyLimit": 5
+}
+
+### 4. List Queues
+GET http://localhost:8080/api/v1/queues
+
+### 5. Submit a SEND_EMAIL Job (Immediate Execution)
+# Replace projectId and queueId with IDs from Step 1 and Step 3
+POST http://localhost:8080/api/v1/jobs
+Content-Type: application/json
+
+{
+  "projectId": "PASTE_PROJECT_ID_HERE",
+  "queueId": "PASTE_QUEUE_ID_HERE",
+  "jobType": "SEND_EMAIL",
+  "payload": {
+    "to": "developer@company.org",
+    "subject": "Hello from Distributed Job Scheduler!",
+    "body": "This job was triggered from IntelliJ IDEA."
+  },
+  "priority": 10
+}
+
+### 6. Get Job Details by ID
+# Replace jobId with the ID returned from Step 5
+GET http://localhost:8080/api/v1/jobs/PASTE_JOB_ID_HERE
+
+### 7. View Job Execution History & Step-by-Step Logs
+GET http://localhost:8080/api/v1/jobs/PASTE_JOB_ID_HERE/executions

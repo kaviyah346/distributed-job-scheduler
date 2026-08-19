@@ -1,0 +1,107 @@
+{
+  "realm": "distributed-scheduler-realm",
+  "displayName": "Distributed Job Scheduler Realm",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrator role with full platform management permissions"
+      },
+      {
+        "name": "DEVELOPER",
+        "description": "Developer role to create projects, queues, and submit background jobs"
+      },
+      {
+        "name": "OPERATOR",
+        "description": "Operator role to view dashboards, pause/resume queues, and manage DLQ"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "job-scheduler-client",
+      "name": "Distributed Job Scheduler Client",
+      "description": "Frontend and API client for Distributed Job Scheduler",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:8080/*",
+        "http://localhost:8080/swagger-ui/oauth2-redirect.html"
+      ],
+      "webOrigins": [
+        "*"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@scheduler.io",
+      "firstName": "System",
+      "lastName": "Admin",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN",
+        "DEVELOPER",
+        "OPERATOR"
+      ]
+    },
+    {
+      "username": "developer",
+      "enabled": true,
+      "email": "dev@scheduler.io",
+      "firstName": "John",
+      "lastName": "Developer",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dev123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "DEVELOPER"
+      ]
+    },
+    {
+      "username": "operator",
+      "enabled": true,
+      "email": "ops@scheduler.io",
+      "firstName": "Jane",
+      "lastName": "Operator",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "op123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "OPERATOR"
+      ]
+    }
+  ]
+}

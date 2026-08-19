@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: distributed-job-scheduler
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/distributed_scheduler
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/distributed-scheduler-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/distributed-scheduler-realm/protocol/openid-connect/certs}
+
+# Job Scheduler, Worker & Security Settings
+app:
+  worker:
+    id: worker-${random.uuid}
+    enabled: true
+    poll-interval-ms: 1000
+    batch-size: 5
+    thread-pool-size: 10
+    heartbeat-interval-ms: 5000
+  
+  scheduler:
+    enabled: true
+    poll-interval-ms: 2000
+    stale-worker-timeout-seconds: 30
+
+  security:
+    jwt:
+      principal-attribute: preferred_username
+      resource-id: job-scheduler-client
+
+logging:
+  level:
+    root: INFO
+    com.distributed.scheduler: DEBUG
+    org.hibernate.SQL: WARN
+    org.springframework.security: INFO
