@@ -1,49 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { UserRole, PRESET_USERS, getStoredUser, loginWithKeycloak, getStoredToken } from '@/lib/auth';
-import { useToast } from './Toast';
-import { Shield, Key, ExternalLink, RefreshCw, Check, UserCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { useAuth } from '@/lib/auth';
+import { Shield, ExternalLink, UserCircle2, LogOut, RefreshCw } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<{ username: string; role: UserRole }>({ username: 'admin', role: 'ADMIN' });
-  const [hasToken, setHasToken] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const { showToast } = useToast();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
 
-  useEffect(() => {
-    const user = getStoredUser();
-    setCurrentUser(user);
-    setHasToken(!!getStoredToken());
-  }, []);
-
-  const handleRoleChange = async (newRole: UserRole) => {
-    setLoading(true);
-    const result = await loginWithKeycloak(newRole);
-    setLoading(false);
-
-    if (result.success) {
-      setCurrentUser({ username: PRESET_USERS[newRole].username, role: newRole });
-      setHasToken(true);
-      showToast(`Switched user to ${PRESET_USERS[newRole].username} (${newRole})`, 'success');
-      // Reload page to refresh all active requests with new token
-      window.location.reload();
-    } else {
-      showToast(`Keycloak login failed: ${result.error}`, 'error');
-    }
-  };
-
-  const handleQuickLogin = async () => {
-    setLoading(true);
-    const result = await loginWithKeycloak(currentUser.role);
-    setLoading(false);
-    if (result.success) {
-      setHasToken(true);
-      showToast(`Logged in successfully via Keycloak!`, 'success');
-      window.location.reload();
-    } else {
-      showToast(`Keycloak connection error: ${result.error}`, 'error');
-    }
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await logout();
   };
 
   return (
@@ -75,44 +42,34 @@ export const Navbar: React.FC = () => {
           Swagger Docs
         </a>
 
-        {/* Keycloak User Switcher */}
-        <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-lg p-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1">
-            <UserCircle2 className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs font-semibold text-slate-200">{currentUser.username}</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
-              {currentUser.role}
-            </span>
-          </div>
-
-          <select
-            value={currentUser.role}
-            onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-            disabled={loading}
-            className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer"
-          >
-            <option value="ADMIN">Switch: Admin</option>
-            <option value="DEVELOPER">Switch: Developer</option>
-            <option value="OPERATOR">Switch: Operator</option>
-          </select>
-
-          {!hasToken ? (
-            <button
-              onClick={handleQuickLogin}
-              disabled={loading}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
-              title="Get JWT Token from Keycloak"
-            >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
-              Connect Keycloak
-            </button>
-          ) : (
-            <div className="flex items-center gap-1 px-2 py-1 text-[11px] text-emerald-400 font-medium" title="JWT Active">
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              Auth Ready
+        {/* Authenticated Keycloak User & Logout */}
+        {isAuthenticated && user && (
+          <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-lg p-1">
+            <div className="flex items-center gap-1.5 px-2.5 py-1">
+              <UserCircle2 className="w-4 h-4 text-cyan-400" />
+              <span className="text-xs font-semibold text-slate-200">{user.username}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-950/80 text-cyan-300 border border-blue-800/60">
+                {user.role}
+              </span>
             </div>
-          )}
-        </div>
+
+            <div className="h-4 w-[1px] bg-slate-800" />
+
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-300 hover:text-rose-300 hover:bg-rose-950/40 rounded transition-colors"
+              title="Logout from Keycloak"
+            >
+              {loggingOut ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-400" />
+              ) : (
+                <LogOut className="w-3.5 h-3.5 text-rose-400" />
+              )}
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -4,11 +4,11 @@ server:
 spring:
   application:
     name: distributed-job-scheduler
-  
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/distributed_scheduler
-    username: postgres
-    password: postgres
+    url: ${DATABASE_URL}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -31,8 +31,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/distributed-scheduler-realm}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/distributed-scheduler-realm/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://keycloak-production-fa76.up.railway.app/realms/job-scheduler}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:https://keycloak-production-fa76.up.railway.app/realms/job-scheduler/protocol/openid-connect/certs}
 
 # Job Scheduler, Worker & Security Settings
 app:
@@ -43,7 +43,7 @@ app:
     batch-size: 5
     thread-pool-size: 10
     heartbeat-interval-ms: 5000
-  
+
   scheduler:
     enabled: true
     poll-interval-ms: 2000
