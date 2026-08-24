@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technical Design and Implementation Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif',
+      fontSize: 14,
+      flowchart: { curve: 'basis', nodeSpacing: 30, rankSpacing: 35, useMaxWidth: false },
+      er: { useMaxWidth: false, fontSize: 13 }
+    });
+  </script>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 10mm 12mm 10mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.55;
+      font-size: 13.5px;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .report-header {
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 3px 0;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2563eb;
+      margin: 0 0 10px 0;
+    }
+
+    .author-card {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #2563eb;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 13px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 18px;
+    }
+
+    .author-card strong {
+      color: #0f172a;
+    }
+
+    .author-card a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .author-card a:hover {
+      text-decoration: underline;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 4px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    h4 {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 8px 0;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin: 0 0 10px 0;
+      padding-left: 18px;
+    }
+
+    li {
+      margin-bottom: 2.5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px 0;
+      font-size: 12px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 9px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    code, pre {
+      font-family: Consolas, "Segoe UI Mono", Monaco, Courier, monospace;
+    }
+
+    code {
+      background-color: #f1f5f9;
+      color: #0969da;
+      padding: 1.5px 4.5px;
+      border-radius: 3px;
+      font-size: 11.5px;
+    }
+
+    pre {
+      background-color: #0f172a;
+      color: #f1f5f9;
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 11.5px;
+      line-height: 1.45;
+      margin: 8px 0;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .badge-impl {
+      display: inline-block;
+      background-color: #dcfce7;
+      color: #15803d;
+      font-weight: 700;
+      padding: 1.5px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      border: 1px solid #86efac;
+    }
+
+    /* ─── Architectural Diagram (Section 4) ─── */
+    .arch-diagram-wrapper {
+      margin: 12px 0 16px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      font-size: 11px;
+    }
+
+    .arch-outer-box {
+      border: 1px solid #64748b;
+      border-radius: 6px;
+      padding: 10px;
+      position: relative;
+      background: #fafafa;
+    }
+
+    .arch-box-title {
+      font-weight: 700;
+      font-size: 12px;
+      color: #0f172a;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .arch-flex {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .arch-main-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .arch-sidebar {
+      width: 140px;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .arch-sidebar-header {
+      font-weight: 700;
+      font-size: 11px;
+      text-align: center;
+      color: #0f172a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 4px;
+    }
+
+    .arch-sidebar-item {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 6px 4px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .arch-card-blue {
+      border: 1px solid #93c5fd;
+      background: #eff6ff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    .arch-card-green {
+      border: 1px solid #86efac;
+      background: #f0fdf4;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .arch-card-purple {
+      border: 1px solid #d8b4fe;
+      background: #faf5ff;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .arch-card-amber {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .arch-card-red {
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .arch-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .arch-grid-4 {
+      display: grid;
+      grid-template-columns: 1.1fr 1.2fr 1.2fr 1.1fr;
+      gap: 6px;
+    }
+
+    .arch-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .arch-grid-8 {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+    }
+
+    .arch-sub-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background: #ffffff;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5px;
+    }
+
+    .arch-sub-title {
+      font-weight: 700;
+      font-size: 10px;
+      text-align: center;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 3px;
+      margin-bottom: 2px;
+    }
+
+    .arch-pill {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 3px 2px;
+      text-align: center;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .arch-db-pill {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      border-radius: 4px;
+      padding: 4px 2px;
+      text-align: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: #78350f;
+    }
+
+    .arch-flow-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #64748b;
+      text-align: center;
+      margin: 2px 0;
+    }
+
+    .arch-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 9.5px;
+      color: #475569;
+    }
+
+    .arch-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .arch-color-box {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      border: 1px solid #94a3b8;
+    }
+
+    /* ─── Large Dedicated Full-Page Diagram Containers (Sections 5 & 6) ─── */
+    .page-diagram-block {
+      page-break-before: always;
+      break-before: page;
+      margin-top: 14px;
+      margin-bottom: 20px;
+    }
+
+    .large-diagram-card {
+      border: 1.5px solid #94a3b8;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 16px 12px;
+      margin: 10px 0;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .large-diagram-card .mermaid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .large-diagram-card .mermaid svg {
+      width: 100% !important;
+      max-width: 860px !important;
+      height: auto !important;
+      min-height: 480px;
+      font-size: 14px !important;
+    }
+
+    .diagram-caption {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e40af;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .print-instruction-bar {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 8px 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .print-btn {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: background-color 0.2s;
+    }
+
+    .print-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    @media print {
+      .print-instruction-bar {
+        display: none !important;
+      }
+      body {
+        padding: 0;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 100%;
+      }
+      h1 { font-size: 20px; }
+      h2 { font-size: 14px; }
+      h3 { font-size: 13.5px; margin-top: 14px; }
+      h4 { font-size: 12.5px; margin-top: 8px; }
+      table { font-size: 10.5px; }
+      th, td { padding: 4.5px 7px; }
+      pre { font-size: 10px; padding: 6px 8px; }
+      code { font-size: 10px; }
+      .arch-diagram-wrapper {
+        padding: 6px;
+        margin: 6px 0;
+      }
+      .page-diagram-block {
+        page-break-before: always !important;
+        break-before: page !important;
+        padding-top: 6px;
+      }
+      .large-diagram-card {
+        padding: 10px 6px;
+      }
+      .large-diagram-card .mermaid svg {
+        min-height: 500px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Print Action Bar -->
+  <div class="print-instruction-bar">
+    <div style="font-size: 12px; color: #1e40af;">
+      <strong>Print Settings Tip:</strong> Click <em>Save as PDF</em> or press <strong>Ctrl + P</strong>. In the print dialog, select <strong>"Save as PDF"</strong>, check <strong>"Background graphics"</strong>, and uncheck <strong>"Headers and footers"</strong>.
+    </div>
+    <button class="print-btn" onclick="window.print()">Save as PDF</button>
+  </div>
+
+  <!-- Document Header -->
+  <div class="report-header">
+    <h1>Distributed Job Scheduler</h1>
+    <h2>Technical Design and Implementation Report</h2>
+    
+    <div class="author-card">
+      <div><strong>Student Name:</strong> Kaviya M</div>
+      <div><strong>Register Number:</strong> 127156074</div>
+      <div><strong>Department:</strong> B.E. Computer Science and Engineering</div>
+      <div><strong>Specialisation:</strong> Artificial Intelligence and Data Science</div>
+      <div style="grid-column: 1 / -1;">
+        <strong>GitHub Repository:</strong> 
+        <a href="https://github.com/kaviyah346/distributed-job-scheduler" target="_blank" rel="noopener noreferrer">
+          https://github.com/kaviyah346/distributed-job-scheduler
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <h3>1. Executive Summary</h3>
+  <p>
+    Modern enterprise systems depend on decoupled, asynchronous processing pipelines to handle long-running computations, external integrations, recurring maintenance, and batch jobs without blocking user-facing request threads. The <strong>Distributed Job Scheduler</strong> is a production-inspired, fault-tolerant background execution platform engineered as a modular monolith in Java 21 and Spring Boot 3.3.4, backed by an ACID-compliant PostgreSQL database, secured via Keycloak OpenID Connect (OIDC) JWT tokens, and administered through a Next.js 14 real-time dashboard.
+  </p>
+  <ul>
+    <li><strong>Zero Duplicate Execution:</strong> Eliminates worker race conditions under high concurrency using native PostgreSQL <code>FOR UPDATE SKIP LOCKED</code> row-level locking.</li>
+    <li><strong>Queue Concurrency & Dispatch Control:</strong> Enforces dynamic per-queue concurrency limits and safe queue pause/resume controls without interrupting active worker processes.</li>
+    <li><strong>Configurable Resilience & DLQ:</strong> Supports Fixed, Linear, and Exponential backoff retry policies, routing exhausted failures to a Dead Letter Queue (DLQ) with stack trace capture and 1-click re-queueing.</li>
+    <li><strong>Worker Liveness & Failover:</strong> Tracks 5-second worker heartbeats and automatically reclaims orphaned jobs from crashed nodes via a 60-second stale worker detection loop.</li>
+    <li><strong>Full Observability:</strong> Records attempt-level durations, worker node assignments, structured step-by-step logs, and JSON result data.</li>
+  </ul>
+
+  <!-- 2. Assignment Alignment -->
+  <h3>2. Project Objectives and Assignment Alignment</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Assignment Requirement</th>
+        <th style="width: 17%;">Status</th>
+        <th style="width: 32%;">Evidence from Project</th>
+        <th style="width: 26%;">Implementation Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Modular Backend Architecture</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>backend/src/main/java/com/distributed/scheduler</code></td>
+        <td>Organized by domain: <code>job</code>, <code>queue</code>, <code>execution</code>, <code>retry</code>, <code>dlq</code>, <code>worker</code>, <code>scheduler</code>, <code>project</code>, <code>security</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Atomic Job Claiming</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>JobRepository.claimEligibleJobs()</code></td>
+        <td>Native query with <code>FOR UPDATE OF j SKIP LOCKED</code> + CTE + <code>RETURNING *</code> in a single transaction.</td>
+      </tr>
+      <tr>
+        <td><strong>Queue Concurrency & Pause/Resume</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>QueueEntity.java</code>, <code>QueueService.java</code></td>
+        <td>Enforces <code>is_paused = false</code> and dynamically checks active running job count limits per queue.</td>
+      </tr>
+      <tr>
+        <td><strong>Immediate & Delayed Scheduling</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>JobService.createJob()</code>, <code>ScheduledJobEligibilityService.java</code></td>
+        <td>Future timestamps start in <code>SCHEDULED</code> status; background engine promotes due jobs to <code>QUEUED</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Recurring Cron Jobs</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>CronSchedulingService.java</code></td>
+        <td>Parses standard 5/6-field expressions via Spring's <code>CronExpression</code>, auto-recalculates next run, and re-schedules.</td>
+      </tr>
+      <tr>
+        <td><strong>Configurable Retry Backoff</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>RetryService.java</code>, <code>BackoffCalculator.java</code></td>
+        <td>Supports <code>FIXED</code>, <code>LINEAR_BACKOFF</code>, and <code>EXPONENTIAL_BACKOFF</code> with customizable parameters.</td>
+      </tr>
+      <tr>
+        <td><strong>Dead Letter Queue & Recovery</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>DlqRecordEntity.java</code>, <code>DlqService.java</code></td>
+        <td>Transfers exhausted jobs to <code>DEAD_LETTERED</code>, captures stack traces, and provides 1-click re-queue/purge.</td>
+      </tr>
+      <tr>
+        <td><strong>Worker Heartbeats & Recovery</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>WorkerRegistrationService.java</code>, <code>StaleWorkerRecoveryService.java</code></td>
+        <td>5-second heartbeats; flags silent workers as <code>DEAD</code> after 60s timeout and recovers orphaned jobs.</td>
+      </tr>
+      <tr>
+        <td><strong>Execution Logging & Audit</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>JobExecutionEntity.java</code>, <code>JobExecutionLogEntity.java</code></td>
+        <td>Captures attempt numbers, duration in ms, JSON output payloads, and structured log levels.</td>
+      </tr>
+      <tr>
+        <td><strong>Authentication & RBAC</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>SecurityConfig.java</code>, <code>JwtAuthConverter.java</code></td>
+        <td>Keycloak OIDC integration with JWT validation and role mapping (<code>ADMIN</code>, <code>DEVELOPER</code>, <code>OPERATOR</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>Interactive Management UI</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>frontend/src/app</code></td>
+        <td>Next.js 14 dashboard with live polling, queue controls, execution log terminal, DLQ studio, and job creation.</td>
+      </tr>
+      <tr>
+        <td><strong>Automated Tests</strong></td>
+        <td><span class="badge-impl">IMPLEMENTED</span></td>
+        <td><code>DistributedJobSchedulerApplicationTests.java</code>, <code>SecurityIntegrationTests.java</code></td>
+        <td>16 integration tests covering full lifecycle, concurrency, retries, cron re-queuing, and RBAC authorization.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 3. Technology Stack -->
+  <h3>3. Technology Stack</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Technology</th>
+        <th style="width: 20%;">Version</th>
+        <th style="width: 55%;">Purpose in this Project</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Java</strong></td>
+        <td><code>21 (LTS)</code></td>
+        <td>Core programming language utilizing modern switch expressions, records, and virtual-thread compatibility.</td>
+      </tr>
+      <tr>
+        <td><strong>Spring Boot</strong></td>
+        <td><code>3.3.4</code></td>
+        <td>Modular application framework providing dependency injection, embedded Tomcat, configuration, and scheduled tasks.</td>
+      </tr>
+      <tr>
+        <td><strong>Spring Data JPA / Hibernate</strong></td>
+        <td><code>6.5 / 3.3.4</code></td>
+        <td>ORM abstraction layer for relational persistence, schema mapping, and native SQL execution.</td>
+      </tr>
+      <tr>
+        <td><strong>PostgreSQL</strong></td>
+        <td><code>15+</code></td>
+        <td>Primary ACID database and distributed queue engine supporting <code>FOR UPDATE SKIP LOCKED</code> and <code>jsonb</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Hypersistence Utils</strong></td>
+        <td><code>3.8.2</code></td>
+        <td>Hibernate 6.3+ JSON type mapping integration for mapping Java <code>Map&lt;String, Object&gt;</code> to PostgreSQL <code>jsonb</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Spring Security & OAuth2</strong></td>
+        <td><code>6.3.3</code></td>
+        <td>Enforces stateless Bearer JWT token verification, CORS filtering, endpoint authorization, and principal mapping.</td>
+      </tr>
+      <tr>
+        <td><strong>Keycloak</strong></td>
+        <td><code>24.0.5</code></td>
+        <td>Open-source OpenID Connect (OIDC) IAM server managing realms, clients, users, and roles.</td>
+      </tr>
+      <tr>
+        <td><strong>SpringDoc OpenAPI / Swagger UI</strong></td>
+        <td><code>2.6.0</code></td>
+        <td>Generates OpenAPI 3.0 metadata and provides interactive in-browser Swagger UI on <code>/swagger-ui/index.html</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Next.js</strong></td>
+        <td><code>14.2.14</code></td>
+        <td>React 18 frontend framework using App Router, TypeScript, and client-side Keycloak SDK integration.</td>
+      </tr>
+      <tr>
+        <td><strong>TailwindCSS</strong></td>
+        <td><code>3.4.13</code></td>
+        <td>Utility styling framework implementing dark-mode glassmorphism, responsive grids, and clean typography.</td>
+      </tr>
+      <tr>
+        <td><strong>JUnit 5 / AssertJ / MockMvc</strong></td>
+        <td><code>5.10.3</code></td>
+        <td>Testing suite for asynchronous lifecycle flows, concurrency verification, and security authorization tests.</td>
+      </tr>
+      <tr>
+        <td><strong>Docker & Docker Compose</strong></td>
+        <td><code>Compose v2</code></td>
+        <td>Containerized setup for Keycloak authentication realm deployment and backend container packaging.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 4. System Architecture -->
+  <h3>4. System Architecture</h3>
+  <p>
+    The platform follows a decoupled modular monolith architecture where PostgreSQL coordinates atomic job dispatch across background worker threads without external message broker overhead:
+  </p>
+
+  <!-- Complete Architecture Diagram Layout matching exact visual specification -->
+  <div class="arch-diagram-wrapper">
+    <div class="arch-flex">
+      
+      <!-- Main Architecture Content -->
+      <div class="arch-main-col">
+        
+        <!-- Clients & Frontend Box -->
+        <div class="arch-outer-box" style="background: #ffffff; border-color: #64748b;">
+          <div class="arch-box-title">Clients & Frontend</div>
+          <div class="arch-grid-2">
+            <div class="arch-card-blue">
+              <strong>🌐 Web Dashboard</strong><br>
+              <span style="color: #475569; font-size: 10px;">Next.js 14</span>
+            </div>
+            <div class="arch-card-blue">
+              <strong>📑 Swagger UI</strong><br>
+              <span style="color: #475569; font-size: 10px;">OpenAPI 3.0</span>
+            </div>
+          </div>
+          <div class="arch-flow-label" style="margin-top: 6px;">⬇ HTTPS / REST / JSON ⬇</div>
+        </div>
+
+        <!-- Backend Modular Monolith Box -->
+        <div class="arch-outer-box" style="background: #ffffff; border-color: #475569;">
+          <div class="arch-box-title">Backend – Modular Monolith (Spring Boot 3.3.4)</div>
+          
+          <div style="display: grid; grid-template-columns: 105px 1fr; gap: 6px; margin-bottom: 6px;">
+            <!-- Security & Access -->
+            <div class="arch-card-green" style="display: flex; flex-direction: column; justify-content: center; padding: 4px;">
+              <strong style="color: #166534; font-size: 10.5px;">🛡️ Security & Access</strong>
+              <div style="font-size: 9px; color: #15803d; margin-top: 4px; font-weight: 600;">
+                Keycloak (OIDC)<br>Authentication<br>& Authorization
+              </div>
+            </div>
+
+            <!-- Top 4 Service Modules -->
+            <div class="arch-grid-4">
+              <!-- Controllers -->
+              <div class="arch-sub-box">
+                <div class="arch-sub-title">Interface Adapters (Controllers)</div>
+                <div class="arch-pill">Auth Controller</div>
+                <div class="arch-pill">Queue Controller</div>
+                <div class="arch-pill">Job Controller</div>
+                <div class="arch-pill">Execution Controller</div>
+                <div class="arch-pill">Worker Controller</div>
+                <div class="arch-pill">Dashboard APIs</div>
+              </div>
+
+              <!-- Application Services -->
+              <div class="arch-sub-box">
+                <div class="arch-sub-title">Application Services</div>
+                <div class="arch-pill">Job Management Service</div>
+                <div class="arch-pill">Scheduling Service</div>
+                <div class="arch-pill">Concurrency Service</div>
+                <div class="arch-pill">Retry & Backoff Service</div>
+                <div class="arch-pill">Notification Service</div>
+              </div>
+
+              <!-- Cross-Cutting Services -->
+              <div class="arch-sub-box">
+                <div class="arch-sub-title">Cross-Cutting Services</div>
+                <div class="arch-pill">Logging & Audit Service</div>
+                <div class="arch-pill">Security Service</div>
+                <div class="arch-pill">Validation Service</div>
+                <div class="arch-pill">Exception Handling</div>
+                <div class="arch-pill">Metrics & Monitoring</div>
+              </div>
+
+              <!-- Configuration -->
+              <div class="arch-sub-box">
+                <div class="arch-sub-title">Configuration</div>
+                <div class="arch-pill">⚙️ Security Config</div>
+                <div class="arch-pill">JWT / OAuth2 Config</div>
+                <div class="arch-pill">CORS Config</div>
+                <div class="arch-pill">App Config</div>
+                <div class="arch-pill">Swagger Config</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Access Layer (Repositories) -->
+          <div class="arch-card-purple" style="margin-bottom: 6px;">
+            <div style="font-weight: 700; font-size: 10.5px; color: #581c87; margin-bottom: 4px;">Data Access Layer (Repositories)</div>
+            <div class="arch-grid-6">
+              <div class="arch-pill" style="font-size: 9px;">JobRepository</div>
+              <div class="arch-pill" style="font-size: 9px;">QueueRepository</div>
+              <div class="arch-pill" style="font-size: 9px;">ExecutionRepository</div>
+              <div class="arch-pill" style="font-size: 9px;">DLQRepository</div>
+              <div class="arch-pill" style="font-size: 9px;">WorkerRepository</div>
+              <div class="arch-pill" style="font-size: 9px;">UserRepository</div>
+            </div>
+          </div>
+
+          <!-- PostgreSQL Storage -->
+          <div class="arch-card-amber">
+            <div style="font-weight: 700; font-size: 10.5px; color: #78350f; margin-bottom: 4px;">PostgreSQL 15+ (ACID Compliant Persistence)</div>
+            <div class="arch-grid-8">
+              <div class="arch-db-pill">🗄️ job<br><span style="font-size: 8px;">(Jobs)</span></div>
+              <div class="arch-db-pill">🗄️ queue<br><span style="font-size: 8px;">(Queues)</span></div>
+              <div class="arch-db-pill">🗄️ execution<br><span style="font-size: 8px;">(Executions)</span></div>
+              <div class="arch-db-pill">🗄️ retry_policy<br><span style="font-size: 8px;">(Retry Policies)</span></div>
+              <div class="arch-db-pill">🗄️ dlq<br><span style="font-size: 8px;">(DLQ)</span></div>
+              <div class="arch-db-pill">🗄️ worker<br><span style="font-size: 8px;">(Workers)</span></div>
+              <div class="arch-db-pill">🗄️ worker_heartbeat<br><span style="font-size: 8px;">(Heartbeats)</span></div>
+              <div class="arch-db-pill">🗄️ users<br><span style="font-size: 8px;">(Users)</span></div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-around; font-size: 9px; color: #475569; font-weight: 600; margin-top: 4px;">
+            <span>⬇ Enqueue / Update / Fetch</span>
+            <span>⬇ Store & Fetch Execution Data</span>
+            <span>⬇ Heartbeats & Liveness Check</span>
+          </div>
+
+        </div>
+
+        <!-- Bottom Row: Background Workers + Observability -->
+        <div class="arch-grid-2">
+          <!-- Background Workers -->
+          <div class="arch-card-blue" style="text-align: left; background: #f0fdfa; border-color: #5eead4;">
+            <div style="font-weight: 700; font-size: 10.5px; color: #134e4a; text-align: center; margin-bottom: 4px;">Background Workers (Multi-threaded)</div>
+            <div style="display: flex; justify-content: space-between; gap: 4px;">
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">⚙️ Worker Instance 1</div>
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">⚙️ Worker Instance 2</div>
+              <div class="arch-pill" style="flex: 0.5; font-size: 8.5px;">......</div>
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">⚙️ Worker Instance N</div>
+            </div>
+          </div>
+
+          <!-- Observability & Monitoring -->
+          <div class="arch-card-red" style="text-align: left;">
+            <div style="font-weight: 700; font-size: 10.5px; color: #991b1b; text-align: center; margin-bottom: 4px;">Observability & Monitoring</div>
+            <div style="display: flex; justify-content: space-between; gap: 4px;">
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">Structured Logs</div>
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">Metrics (Micrometer)</div>
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">Health Checks</div>
+              <div class="arch-pill" style="flex: 1; font-size: 8.5px;">Audit Logs</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- External Integrations Sidebar -->
+      <div class="arch-sidebar">
+        <div class="arch-sidebar-header">External Integrations</div>
+        <div class="arch-sidebar-item">
+          ✉️ <strong>Email / SMTP</strong><br>
+          <span style="font-size: 8.5px; color: #64748b;">(Notifications)</span>
+        </div>
+        <div class="arch-sidebar-item" style="opacity: 0.85;">
+          🔗 <strong>Webhooks</strong><br>
+          <span style="font-size: 8.5px; color: #64748b;">(Future)</span>
+        </div>
+        <div class="arch-sidebar-item" style="opacity: 0.85;">
+          ☁️ <strong>Cloud Storage</strong><br>
+          <span style="font-size: 8.5px; color: #64748b;">(Future)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Legend -->
+    <div class="arch-legend">
+      <div style="font-weight: 700; color: #0f172a;">Legend:</div>
+      <div class="arch-legend-item"><span>&rarr; Synchronous Flow</span></div>
+      <div class="arch-legend-item"><span>&#8674; Asynchronous / Background Flow</span></div>
+      <div class="arch-legend-item"><div class="arch-color-box" style="background: #eff6ff;"></div><span>Presentation Layer</span></div>
+      <div class="arch-legend-item"><div class="arch-color-box" style="background: #ffffff;"></div><span>Application Layer</span></div>
+      <div class="arch-legend-item"><div class="arch-color-box" style="background: #fffbeb;"></div><span>Persistence Layer</span></div>
+      <div class="arch-legend-item"><div class="arch-color-box" style="background: #faf5ff;"></div><span>Infrastructure Layer</span></div>
+      <div class="arch-legend-item"><div class="arch-color-box" style="background: #f0fdf4;"></div><span>External System</span></div>
+    </div>
+
+    <div class="diagram-caption">Figure 4.1: High-Level Modular System Architecture & Communication Flow</div>
+  </div>
+
+  <!-- 5. Database Design (DEDICATED FULL PAGE) -->
+  <div class="page-diagram-block">
+    <h3>5. Database Design & ER Diagram</h3>
+    <p>
+      The relational data model consists of 8 normalized database entities with foreign key constraints, composite index optimizations, and native PostgreSQL JSONB support:
+    </p>
+    <div class="large-diagram-card">
+      <div class="mermaid">
+erDiagram
+    PROJECTS ||--o{ QUEUES : "contains"
+    PROJECTS ||--o{ JOBS : "owns"
+    RETRY_POLICIES ||--o{ QUEUES : "default policy for"
+    QUEUES ||--o{ JOBS : "enqueues"
+    JOBS ||--o{ JOB_EXECUTIONS : "tracks attempts"
+    JOBS ||--o| DLQ_RECORDS : "routes exhausted failure"
+    JOB_EXECUTIONS ||--o{ JOB_EXECUTION_LOGS : "logs steps"
+
+    PROJECTS {
+        uuid id PK
+        varchar name UK
+        varchar api_key UK
+        timestamp created_at
+    }
+
+    QUEUES {
+        uuid id PK
+        uuid project_id FK
+        varchar name
+        int concurrency_limit
+        boolean is_paused
+        uuid retry_policy_id FK
+    }
+
+    RETRY_POLICIES {
+        uuid id PK
+        varchar name
+        varchar strategy
+        int max_retries
+        int initial_interval_seconds
+        double backoff_multiplier
+    }
+
+    JOBS {
+        uuid id PK
+        uuid project_id FK
+        uuid queue_id FK
+        varchar job_type
+        jsonb payload
+        varchar status
+        int priority
+        int current_retry_count
+        int max_retries
+        timestamp scheduled_at
+        varchar cron_expression
+        varchar locked_by_worker_id
+    }
+
+    JOB_EXECUTIONS {
+        uuid id PK
+        uuid job_id FK
+        varchar worker_id
+        int attempt_number
+        varchar status
+        timestamp started_at
+        bigint duration_ms
+        jsonb result_output
+    }
+
+    JOB_EXECUTION_LOGS {
+        uuid id PK
+        uuid execution_id FK
+        varchar log_level
+        text message
+        timestamp timestamp
+    }
+
+    DLQ_RECORDS {
+        uuid id PK
+        uuid job_id FK,UK
+        varchar reason
+        text last_error
+        int total_attempts
+        timestamp dead_lettered_at
+    }
+
+    WORKERS {
+        varchar id PK
+        varchar hostname
+        varchar status
+        int current_job_count
+        int max_concurrency
+        timestamp last_heartbeat_at
+    }
+      </div>
+      <div class="diagram-caption">Figure 5.1: Complete Relational Database Entity-Relationship (ER) Schema</div>
+    </div>
+  </div>
+
+  <!-- 6. Job Lifecycle & Scheduling Flow (DEDICATED FULL PAGE) -->
+  <div class="page-diagram-block">
+    <h3>6. Job Lifecycle and Scheduling Flow</h3>
+    <p>
+      Tasks transition across distinct, deterministic lifecycle states from API ingestion through atomic claiming, worker execution, backoff retries, and DLQ routing:
+    </p>
+    <div class="large-diagram-card">
+      <div class="mermaid">
+flowchart TD
+    subgraph S1["Phase 1: Ingestion & Eligibility Check"]
+        SUBMIT["Job Submission\n(POST /api/v1/jobs)"]
+        COND_TIME{"scheduled_at > now ?"}
+        SCHEDULED["SCHEDULED State\n(Waiting for due timestamp)"]
+        QUEUED["QUEUED State\n(Eligible for worker claim)"]
+        
+        SUBMIT --> COND_TIME
+        COND_TIME -->|Yes: Delayed / Future Job| SCHEDULED
+        COND_TIME -->|No: Immediate Job| QUEUED
+        SCHEDULED -->|Due Time Reached| QUEUED
+    end
+
+    subgraph S2["Phase 2: Atomic Claiming & Execution"]
+        CLAIMED["CLAIMED State\n(Atomically locked via FOR UPDATE SKIP LOCKED)"]
+        RUNNING["RUNNING State\n(Dispatched to FixedThreadPool Worker Handler)"]
+        
+        QUEUED -->|Worker Polling Batch| CLAIMED
+        CLAIMED -->|Submit to Thread Pool| RUNNING
+    end
+
+    subgraph S3["Phase 3: Execution Outcomes & Fault Recovery"]
+        COND_RES{"Execution Result?"}
+        RUNNING --> COND_RES
+
+        subgraph SuccessBranch["Success Flow"]
+            COND_CRON{"Has Cron Expression?"}
+            RE_CRON["Calculate Next Trigger\n-> Re-enqueued as SCHEDULED"]
+            COMPLETED["COMPLETED State\n(Terminal Success State)"]
+            
+            COND_RES -->|Success| COND_CRON
+            COND_CRON -->|Yes: Recurring Job| RE_CRON
+            COND_CRON -->|No: One-Time Job| COMPLETED
+        end
+
+        subgraph FailureBranch["Failure & Retry Flow"]
+            COND_RETRY{"attempts < maxRetries ?"}
+            RETRY_BACKOFF["Calculate Backoff Delay\n(Fixed / Linear / Exponential)\n-> Re-enqueue to QUEUED"]
+            DLQ["DEAD_LETTERED State\n(Moved to DLQ with Error Stack Trace)"]
+            
+            COND_RES -->|Failure| COND_RETRY
+            COND_RETRY -->|Yes: Retryable| RETRY_BACKOFF
+            COND_RETRY -->|No: Retries Exhausted| DLQ
+            DLQ -->|1-Click Requeue API| QUEUED
+        end
+    end
+      </div>
+      <div class="diagram-caption">Figure 6.1: Complete Background Job Lifecycle State Machine</div>
+    </div>
+  </div>
+
+  <!-- 7. Reliability & Concurrency (Continues Naturally on Next Page) -->
+  <div class="page-diagram-block">
+    <h3>7. Reliability and Concurrency</h3>
+    <p>
+      Duplicate task execution is prevented at the database layer using an atomic Common Table Expression (CTE) with row-level locks:
+    </p>
+    <pre><code>WITH eligible_jobs AS (
+    SELECT j.id
+    FROM jobs j
+    JOIN queues q ON j.queue_id = q.id
+    WHERE j.status = 'QUEUED'
+      AND j.scheduled_at &lt;= CURRENT_TIMESTAMP
+      AND q.is_paused = FALSE
+      AND (
+          SELECT COUNT(*)
+          FROM jobs r
+          WHERE r.queue_id = q.id AND r.status = 'RUNNING'
+      ) &lt; q.concurrency_limit
+    ORDER BY j.priority DESC, j.scheduled_at ASC, j.created_at ASC
+    FOR UPDATE OF j SKIP LOCKED
+    LIMIT :batchSize
+)
+UPDATE jobs
+SET status = 'CLAIMED',
+    locked_by_worker_id = :workerId,
+    locked_at = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id IN (SELECT id FROM eligible_jobs)
+RETURNING *</code></pre>
+    <ul>
+      <li><strong><code>FOR UPDATE OF j SKIP LOCKED</code>:</strong> Instructs PostgreSQL to lock candidate rows. If another worker thread holds a lock, that row is skipped instantly without blocking.</li>
+      <li><strong>Queue Concurrency Enforcement:</strong> Evaluates active <code>RUNNING</code> jobs in the queue against <code>concurrency_limit</code> during the claim transaction.</li>
+      <li><strong>Worker Heartbeats & Recovery:</strong> Active workers update heartbeats every 5 seconds. Stale workers silent for $> 60$ seconds are marked <code>DEAD</code>, and their orphaned jobs are safely recovered.</li>
+    </ul>
+  </div>
+
+  <!-- 8. Authentication & Security -->
+  <h3>8. Authentication and Security</h3>
+  <p>
+    Authentication is handled via Keycloak OIDC (OAuth2 Resource Server). Incoming Bearer JWT tokens are validated statelessly against Keycloak JWKS endpoints. <code>JwtAuthConverter</code> extracts realm and client roles into Spring Security authorities:
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 35%;">Endpoint Pattern</th>
+        <th style="width: 15%;">Method</th>
+        <th style="width: 25%;">Permitted Roles</th>
+        <th style="width: 25%;">Access Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/swagger-ui/**</code>, <code>/v3/api-docs/**</code></td>
+        <td><code>GET</code></td>
+        <td><strong>Public</strong></td>
+        <td>Interactive API documentation.</td>
+      </tr>
+      <tr>
+        <td><code>/actuator/**</code></td>
+        <td><code>GET</code></td>
+        <td><strong>Public</strong></td>
+        <td>Health and telemetry endpoints.</td>
+      </tr>
+      <tr>
+        <td><code>/api/v1/dlq/**</code></td>
+        <td><code>POST</code>, <code>DELETE</code></td>
+        <td><code>ADMIN</code>, <code>OPERATOR</code></td>
+        <td>Re-queue and purge dead-lettered jobs.</td>
+      </tr>
+      <tr>
+        <td><code>/api/v1/retry-policies/**</code></td>
+        <td><code>POST</code></td>
+        <td><code>ADMIN</code>, <code>DEVELOPER</code></td>
+        <td>Create custom retry backoff policies.</td>
+      </tr>
+      <tr>
+        <td><code>/api/v1/queues/*/pause</code>, <code>/resume</code></td>
+        <td><code>PUT</code></td>
+        <td><code>ADMIN</code>, <code>OPERATOR</code></td>
+        <td>Control queue dispatch state.</td>
+      </tr>
+      <tr>
+        <td><code>/api/v1/projects/**</code>, <code>/queues/**</code>, <code>/jobs/**</code></td>
+        <td>Any</td>
+        <td><code>ADMIN</code>, <code>DEVELOPER</code></td>
+        <td>Create projects, queues, and submit background jobs.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 9. Frontend and User Experience -->
+  <h3>9. Frontend and User Experience</h3>
+  <p>
+    The web console is built using Next.js 14 (App Router) and TailwindCSS, providing comprehensive operational management:
+  </p>
+  <ul>
+    <li><strong>System Dashboard (<code>/</code>):</strong> 6 live KPI cards, active worker fleet monitor, and live job activity stream with 4-second auto-polling.</li>
+    <li><strong>Projects & Queues Hub (<code>/queues</code>):</strong> Displays project API keys (<code>djs_live_...</code>), concurrency meters, and real-time pause/resume buttons.</li>
+    <li><strong>Jobs Manager (<code>/jobs</code>):</strong> Status pill filters, project/queue filters, search, pagination, cancel actions, and terminal log triggers.</li>
+    <li><strong>Terminal Logs Drawer:</strong> Multi-attempt execution viewer with duration metrics, worker node IDs, and JSON output data.</li>
+    <li><strong>Retry Policies Studio (<code>/retry-policies</code>):</strong> Strategy builder with dynamic projected delay previews (up to 5 attempts).</li>
+    <li><strong>DLQ Hub (<code>/dlq</code>):</strong> Exhausted job failure inspector with expandable stack traces and 1-click re-queueing.</li>
+  </ul>
+
+  <!-- 10. API Documentation -->
+  <h3>10. API Documentation</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 10%;">Method</th>
+        <th style="width: 38%;">Endpoint</th>
+        <th style="width: 34%;">Purpose</th>
+        <th style="width: 18%;">Allowed Roles</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>GET</code></td><td><code>/api/v1/dashboard/stats</code></td><td>System KPI metrics & status counts</td><td>Authenticated</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/workers</code></td><td>Active worker fleet & concurrency load</td><td>Authenticated</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/projects</code></td><td>Create project & generate API key</td><td><code>ADMIN</code>, <code>DEVELOPER</code></td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/projects</code></td><td>List all projects</td><td>Authenticated</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/queues</code></td><td>Create queue with concurrency limit</td><td><code>ADMIN</code>, <code>DEVELOPER</code></td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/queues</code></td><td>List queues (filterable by project)</td><td>Authenticated</td></tr>
+      <tr><td><code>PUT</code></td><td><code>/api/v1/queues/{id}/pause</code></td><td>Pause queue dispatch</td><td><code>ADMIN</code>, <code>OPERATOR</code></td></tr>
+      <tr><td><code>PUT</code></td><td><code>/api/v1/queues/{id}/resume</code></td><td>Resume queue dispatch</td><td><code>ADMIN</code>, <code>OPERATOR</code></td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/jobs</code></td><td>Submit immediate, delayed, or cron job</td><td><code>ADMIN</code>, <code>DEVELOPER</code></td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/jobs</code></td><td>Query paginated jobs with status/queue filters</td><td>Authenticated</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/jobs/{id}/cancel</code></td><td>Cancel pending or scheduled job</td><td>Authenticated</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/jobs/{id}/executions</code></td><td>Get execution attempts, durations, and logs</td><td>Authenticated</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/retry-policies</code></td><td>Create custom retry backoff policy</td><td><code>ADMIN</code>, <code>DEVELOPER</code></td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/v1/dlq</code></td><td>List dead-lettered jobs & failure reasons</td><td>Authenticated</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/v1/dlq/jobs/{id}/requeue</code></td><td>Re-queue dead-lettered job (reset retries)</td><td><code>ADMIN</code>, <code>OPERATOR</code></td></tr>
+      <tr><td><code>DELETE</code></td><td><code>/api/v1/dlq/jobs/{id}</code></td><td>Purge job from DLQ</td><td><code>ADMIN</code>, <code>OPERATOR</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- 11. Design Decisions & Trade-offs -->
+  <h3>11. Key Design Decisions and Trade-offs</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Decision</th>
+        <th style="width: 25%;">Reason</th>
+        <th style="width: 25%;">Benefits</th>
+        <th style="width: 25%;">Trade-offs / Limitations</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>PostgreSQL <code>SKIP LOCKED</code></strong></td>
+        <td>Avoids external broker complexity while guaranteeing transactional consistency.</td>
+        <td>Strict ACID guarantees; zero broker sync lag; job state and data commit together.</td>
+        <td>Database polling load scales with high worker counts; requires index maintenance.</td>
+      </tr>
+      <tr>
+        <td><strong>Spring Boot 3.3 & Java 21</strong></td>
+        <td>Enterprise-grade asynchronous runtime and type-safe ecosystem.</td>
+        <td>Declarative transactions (<code>@Transactional</code>), rich testing, and virtual thread readiness.</td>
+        <td>Higher memory footprint than compiled Go/Rust binaries.</td>
+      </tr>
+      <tr>
+        <td><strong>Keycloak OIDC Security</strong></td>
+        <td>Standards-compliant authentication decoupling identity from business logic.</td>
+        <td>Centralized user directory, role mapping (<code>ADMIN</code>, <code>DEVELOPER</code>, <code>OPERATOR</code>), PKCE flow.</td>
+        <td>Requires Keycloak instance for token issuance.</td>
+      </tr>
+      <tr>
+        <td><strong>Decoupled Execution Tables</strong></td>
+        <td>Isolates active job state from attempt history and step logs.</td>
+        <td>Keeps primary queue table lean and performant; provides complete audit trail.</td>
+        <td>Requires log pruning policies for long-term database maintenance.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 12. Setup & Installation -->
+  <h3>12. Setup and Installation Instructions</h3>
+  <ul>
+    <li><strong>1. Start Keycloak:</strong> <code>docker compose up -d</code> (Runs on <code>http://localhost:8180</code> with pre-configured realm export).</li>
+    <li><strong>2. Start Backend:</strong> <code>cd backend && ./mvnw clean spring-boot:run</code> (Runs on <code>http://localhost:8080</code>).</li>
+    <li><strong>3. Start Frontend:</strong> <code>cd frontend && npm install && npm run dev</code> (Runs on <code>http://localhost:3000</code>).</li>
+    <li><strong>Preloaded Keycloak Credentials:</strong>
+      <ul>
+        <li><code>admin</code> / <code>admin123</code> (Roles: <code>ADMIN</code>, <code>DEVELOPER</code>, <code>OPERATOR</code>)</li>
+        <li><code>developer</code> / <code>dev123</code> (Role: <code>DEVELOPER</code>)</li>
+        <li><code>operator</code> / <code>op123</code> (Role: <code>OPERATOR</code>)</li>
+      </ul>
+    </li>
+  </ul>
+
+  <!-- 13. Testing -->
+  <h3>13. Testing</h3>
+  <ul>
+    <li><strong><code>DistributedJobSchedulerApplicationTests.java</code> (9 Integration Tests):</strong> Verifies end-to-end flows, concurrent batch execution, retry backoff calculation, DLQ transitions, 1-click re-queueing, cron auto-rescheduling, and queue pause/resume controls.</li>
+    <li><strong><code>SecurityIntegrationTests.java</code> (7 Security Tests):</strong> Validates public Swagger endpoints, 401 rejections on unauthenticated requests, valid JWT authentication, and RBAC authorization matrix enforcement.</li>
+  </ul>
+  <p>To execute the automated test suite:</p>
+  <pre><code>cd backend && ./mvnw test</code></pre>
+
+  <!-- 14. Evaluation Summary -->
+  <h3>14. Assignment Evaluation Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30%;">Evaluation Category</th>
+        <th style="width: 15%;">Weight</th>
+        <th style="width: 20%;">Assessment</th>
+        <th style="width: 35%;">Key Strengths</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>System Architecture</strong></td><td>20 pts</td><td><strong>Strong</strong></td><td>Clean modular monolith, domain separation, pluggable handler registry.</td></tr>
+      <tr><td><strong>Database Design</strong></td><td>20 pts</td><td><strong>Strong</strong></td><td>PostgreSQL ACID design, composite indexes, <code>jsonb</code> payloads, foreign key cascades.</td></tr>
+      <tr><td><strong>Backend Engineering</strong></td><td>20 pts</td><td><strong>Strong</strong></td><td>Java 21, Spring Boot 3.3, <code>REQUIRES_NEW</code> logging, global exception advice.</td></tr>
+      <tr><td><strong>Reliability & Concurrency</strong></td><td>15 pts</td><td><strong>Strong</strong></td><td><code>FOR UPDATE SKIP LOCKED</code>, worker heartbeats, 60s stale worker recovery.</td></tr>
+      <tr><td><strong>Frontend & UX</strong></td><td>10 pts</td><td><strong>Strong</strong></td><td>Next.js 14, TailwindCSS glassmorphism, real-time KPI metrics, terminal logs.</td></tr>
+      <tr><td><strong>API Design</strong></td><td>5 pts</td><td><strong>Strong</strong></td><td>Standard RESTful conventions, uniform <code>ApiResponse</code>, SpringDoc OpenAPI.</td></tr>
+      <tr><td><strong>Documentation</strong></td><td>5 pts</td><td><strong>Strong</strong></td><td>Architecture diagrams, ER diagrams, setup guides, and API documentation.</td></tr>
+      <tr><td><strong>Testing</strong></td><td>5 pts</td><td><strong>Strong</strong></td><td>16 automated tests covering full lifecycle, concurrency, retries, and RBAC.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 15. Conclusion -->
+  <h3>15. Conclusion</h3>
+  <p>
+    The <strong>Distributed Job Scheduler</strong> platform delivers a resilient, observable background task execution engine. By leveraging PostgreSQL's <code>FOR UPDATE SKIP LOCKED</code> primitive alongside Keycloak OIDC security, dynamic backoff algorithms, and Next.js real-time monitoring, the system provides high concurrency throughput with zero duplicate task execution.
+  </p>
+
+</div>
+
+</body>
+</html>
