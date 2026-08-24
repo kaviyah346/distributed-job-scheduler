@@ -44,15 +44,15 @@ export const Sidebar: React.FC = () => {
       {/* Engine Status info */}
       <div className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-900/40 text-xs space-y-2">
         <div className="flex items-center justify-between text-slate-400">
-          <span>Backend API</span>
+          <span>Backend Engine</span>
           <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            Port 8080
+            Online
           </span>
         </div>
         <div className="flex items-center justify-between text-slate-400">
           <span>Keycloak Auth</span>
-          <span className="text-cyan-400 font-medium">Port 8180</span>
+          <span className="text-cyan-400 font-medium">OIDC / JWT</span>
         </div>
         <div className="flex items-center justify-between text-slate-400">
           <span>Concurrency</span>

@@ -13,6 +13,11 @@ export const Navbar: React.FC = () => {
     await logout();
   };
 
+  const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL
+    ? process.env.NEXT_PUBLIC_API_BASE_URL.trim().replace(/\/+$/, '').replace(/\/api(\/v1)?\/?$/, '')
+    : 'http://localhost:8080';
+  const swaggerUrl = `${apiHost}/swagger-ui/index.html`;
+
   return (
     <header className="sticky top-0 z-40 w-full h-16 border-b border-slate-800/80 glass-panel flex items-center justify-between px-6">
       <div className="flex items-center gap-3">
@@ -33,7 +38,7 @@ export const Navbar: React.FC = () => {
       <div className="flex items-center gap-3">
         {/* Swagger UI quick link */}
         <a
-          href="http://localhost:8080/swagger-ui/index.html"
+          href={swaggerUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 rounded-lg border border-slate-700/70 transition-colors"
